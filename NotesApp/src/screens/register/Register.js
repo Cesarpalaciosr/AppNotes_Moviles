@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import { Formik } from "formik";
-import { View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import KeyBoardAvoidingWarapper from "../components/KeyboardAvoidingWrapper";
 
 import { Octicons, Ionicons } from "@expo/vector-icons";
@@ -28,10 +28,18 @@ import {
 } from "../components/styles";
 import { user_register } from "../../api/user_api";
 
-const { brand, darkLight } = Colors;
+const { brand, darkLight, primary} = Colors;
 //Se puede cambiar name y lastname por fullname
 const Register = ({navigation}) => {
   const [hidePassword, setHidePassword] = useState(true);
+
+  const [message, setMessage] = useState();
+  const [messageType, setMessageType]= useState();
+
+  const handleMessage= (message, type= `Fallido`) => {
+    setMessage(message);
+    setMessageType(type);
+  };
   return (
     <KeyBoardAvoidingWarapper>
         <StyledContainer>
@@ -41,28 +49,39 @@ const Register = ({navigation}) => {
         <SubTitle>Account Register</SubTitle>
         <Formik
           initialValues={{ name:"", lastname:"", email:"", username: "", password: "", confirmpassword: "" }}
-          onSubmit={(values) => {
+          onSubmit={(values, {setSubmitting}) => {
+            handleMessage(null);
+                  if(values.name == '' ||values.lastname == '' ||values.email == '' ||values.username == '' || values.password == '' || values.confirmpassword == ''){
+                    handleMessage('Por favor rellena los campos');
+                    setSubmitting(false);
+                  }else{
             user_register({
                   name: values.name,
                   lastname: values.lastname,
                   email: values.email,
                   username: values.username,
                   password:values.password
-                }).then((result) => {
+                }, setSubmitting).then((result) => {
                       console.log(result);
                     if(result.status == 201){ 
                       navigation.replace("Login");
                       // AsyncStorage.setItem("AccessToken", result.values.token);
+                    }else{
+                      handleMessage('Datos incorrectos');
                     }
-
+                setSubmitting(false);
                   }).catch(err => {
+                    handleMessage('Ocurrio un error');
+                    setSubmitting(false);
                     console.log(err);
                   });
+                  }
+
             // console.log(values);
             // navigation.navigate("Welcome");
           }}
         >
-          {({ handleChange, handleBlur, handleSubmit, values }) => (
+          {({ handleChange, handleBlur, handleSubmit, values , isSubmitting}) => (
             <StyledFormArea>
               <MyTextInput
                 label="name"
@@ -127,10 +146,13 @@ const Register = ({navigation}) => {
                 hidePassword={hidePassword}
                 setHidePassword={setHidePassword}
               />
-              <MsgBox>...</MsgBox>
-              <StyledButton onPress={handleSubmit}>
-                <ButtonText>Registrar</ButtonText>
-              </StyledButton>
+                <MsgBox type={messageType}>{message}</MsgBox>
+              {!isSubmitting && (<StyledButton onPress={handleSubmit}>
+                  <ButtonText>Register</ButtonText>
+                </StyledButton>)}
+                {isSubmitting && (<StyledButton disable={true}>
+                  <ActivityIndicator size="large" color={primary}/>
+                </StyledButton>)}
               <Line />
 
               <ExtraView>

@@ -11,7 +11,7 @@ export const Colors = {
     darkLight: "#9CA3AF",
     brand: "#6D28D9",
     green: "#10B981",
-    red: "EF4444",
+    red: "#EF4444",
 };
 
 const {primary, secondary, tertiary, darkLight, brand} = Colors;
@@ -139,6 +139,7 @@ export const ButtonText = styled.Text`
 export const MsgBox = styled.Text`
     text-align:center;
     font-size: 13px;
+    color: ${(props) => (props.type == 'EXITOSO' ? Colors.green: Colors.red)};
 `;
 
 export const Line = styled.View`

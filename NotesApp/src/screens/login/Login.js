@@ -1,11 +1,10 @@
-import React , {useState} from 'react';
+import React , {useState/*, useContext*/} from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { Formik } from 'formik';
-import { View } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import { user_login } from '../../api/user_api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Octicons, Ionicons} from '@expo/vector-icons';
-
 import KeyBoardAvoidingWarapper from '../components/KeyboardAvoidingWrapper';
 
 import {
@@ -29,18 +28,27 @@ import {
   TextLink,
   TextLinkContent
 } from '../components/styles';
+// import { AuthContext } from '../../context/AuthContext';
 
-const {brand, darkLight} = Colors;
-
+const {brand, darkLight, primary} = Colors;
 
 
 
 
 const Login = ({navigation}) => {
+  // const {test} = useContext(AuthContext);
   const [hidePassword, setHidePassword] = useState(true);
+
+  const [message, setMessage] = useState();
+  const [messageType, setMessageType]= useState();
+
+  const handleMessage= (message, type= `Fallido`) => {
+    setMessage(message);
+    setMessageType(type);
+  };
+
   return (
     <KeyBoardAvoidingWarapper>
-
       <StyledContainer>
         <StatusBar style='dark'/>
         <InnerContainer>
@@ -50,11 +58,17 @@ const Login = ({navigation}) => {
 
             <Formik
               initialValues={{ username:'', password:''}}
-              onSubmit={(values) => {
+              onSubmit={(values, {setSubmitting}) => {
+                handleMessage(null);
+                  if(values.username == '' || values.password == ''){
+                    handleMessage('Por favor rellena los campos');
+                    setSubmitting(false);
+                  }else{
+                    
                 user_login({
                   username: values.username,
                   password:values.password
-                }).then((result) => {
+                }, setSubmitting).then((result) => {
                       console.log(result);
                     if(result.status == 200){ 
                       console.log(result.data.token);
@@ -65,13 +79,21 @@ const Login = ({navigation}) => {
                   /*manejar los tokens
                   */ 
                   
-                    } else alert('Credenciales incorrectas');
-              
-                  }).catch(err => {
+                    } else{
+                    handleMessage('Datos incorrectos');
+                    //  alert('Credenciales incorrectas');
+              }
+              setSubmitting(false);
+                  })
+
+                  .catch(err => {
+                    handleMessage('Ocurrio un error');
+                    setSubmitting(false);
                     console.log(err);
                   });
+                  }
               }}>
-            {({handleChange, handleBlur, handleSubmit, values}) => (
+            {({handleChange, handleBlur, handleSubmit, values, isSubmitting}) => (
               <StyledFormArea>
                 <MyTextInput 
                   label="Username"
@@ -95,13 +117,17 @@ const Login = ({navigation}) => {
                   hidePassword={hidePassword}
                   setHidePassword={setHidePassword}
                 />
-                <MsgBox>...</MsgBox>
-                <StyledButton onPress={handleSubmit}>
-                  <ButtonText type="submit">Login</ButtonText>
-                </StyledButton>
+                <MsgBox type={messageType}>{message}</MsgBox>
+              {!isSubmitting && (<StyledButton onPress={handleSubmit}>
+                  <ButtonText>Login</ButtonText>
+                </StyledButton>)}
+                {isSubmitting && (<StyledButton disable={true}>
+                  <ActivityIndicator size="large" color={primary}/>
+                </StyledButton>)}
                 <Line/>
                 
                 <ExtraView>
+                {/* <ExtraText>{test}</ExtraText> */}
                   <ExtraText>No tienes cuenta? </ExtraText>
                   <TextLink onPress={() => navigation.navigate("Register")}>
                     <TextLinkContent>Registrarse</TextLinkContent>
