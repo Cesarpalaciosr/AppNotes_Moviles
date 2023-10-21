@@ -2,7 +2,8 @@ import React , {useState} from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { Formik } from 'formik';
 import { View } from 'react-native';
-
+import { user_login } from '../../api/user_api';
+import {AsyncStorage} from '@react-native-async-storage/async-storage';
 import {Octicons, Ionicons} from '@expo/vector-icons';
 
 import KeyBoardAvoidingWarapper from '../components/KeyboardAvoidingWrapper';
@@ -28,6 +29,7 @@ import {
   TextLink,
   TextLinkContent
 } from '../components/styles';
+import axios from 'axios';
 
 const {brand, darkLight} = Colors;
 
@@ -50,8 +52,42 @@ const Login = ({navigation}) => {
             <Formik
               initialValues={{ username:'', password:''}}
               onSubmit={(values) => {
+
+  //               axios.post('https://appnotesservermoviles-production.up.railway.app/signin',{
+  //                 username:values.username,
+  //                 password:values.password
+  //               }, { method:'POST',
+  //               headers: {
+  //                 accept: 'application/json',
+  //                 'content-type': 'application/x-www-form-urlencoded; charset=utf-8',
+  //               }
+  // }).then((result) => {
+  //                     // console.log(result);
+  //                   if(result.status == 200){ 
+  //                     console.log(result.data.token);
+  //                     AsyncStorage.setItem("AccessToken", result.data.token);
+  //                     navigation.replace("Welcome");
+  //                   }
+
+  //                 }).catch(err => {
+  //                   console.log(err);
+  //                 });
+                user_login({
+                  username: values.username,
+                  password:values.password
+                }).then((result) => {
+                      console.log(result);
+                    if(result.status == 200){ 
+                      navigation.replace("Welcome");
+                      AsyncStorage.setItem("AccessToken", result.values.token);
+                    }
+
+                  }).catch(err => {
+                    console.log(err);
+                  });
                 console.log(values);
-                navigation.navigate("Welcome");
+                console.log(values.username);
+                // navigation.navigate("Welcome");
               }}>
             {({handleChange, handleBlur, handleSubmit, values}) => (
               <StyledFormArea>
@@ -79,7 +115,7 @@ const Login = ({navigation}) => {
                 />
                 <MsgBox>...</MsgBox>
                 <StyledButton onPress={handleSubmit}>
-                  <ButtonText>Login</ButtonText>
+                  <ButtonText type="submit">Login</ButtonText>
                 </StyledButton>
                 <Line/>
                 

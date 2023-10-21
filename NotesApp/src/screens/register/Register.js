@@ -26,6 +26,7 @@ import {
   TextLink,
   TextLinkContent,
 } from "../components/styles";
+import { user_register } from "../../api/user_api";
 
 const { brand, darkLight } = Colors;
 //Se puede cambiar name y lastname por fullname
@@ -41,8 +42,24 @@ const Register = ({navigation}) => {
         <Formik
           initialValues={{ name:"", lastname:"", email:"", username: "", password: "", confirmpassword: "" }}
           onSubmit={(values) => {
-            console.log(values);
-            navigation.navigate("Welcome");
+            user_register({
+                  name: values.name,
+                  lastname: values.lastname,
+                  email: values.email,
+                  username: values.username,
+                  password:values.password
+                }).then((result) => {
+                      console.log(result);
+                    if(result.status == 201){ 
+                      navigation.replace("Login");
+                      // AsyncStorage.setItem("AccessToken", result.values.token);
+                    }
+
+                  }).catch(err => {
+                    console.log(err);
+                  });
+            // console.log(values);
+            // navigation.navigate("Welcome");
           }}
         >
           {({ handleChange, handleBlur, handleSubmit, values }) => (
